@@ -7,8 +7,8 @@ typedef struct FinancialIdentity_struct {   //Struct with attributes...
   double accruedDebt;
   double mortgage;
 
-  int yearsWithDebt; //Change to int???
-  int yearsRented; //Change to int???
+  int yearsWithDebt;
+  int yearsRented; 
 
   double debtPaid;
 

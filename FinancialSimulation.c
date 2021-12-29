@@ -17,7 +17,7 @@ void accountDifference(FinancialIdentity *person, double difference) {   //EXTRA
   }
 }
 
-//Multiplies savings by the interest of some account...
+//Multiplies savings by the interest rate of some account...
 void savingsPlacement(FinancialIdentity *person, double interestRate) {
   double rateScalar = interestRate + 1;
   person->savings *= rateScalar;
@@ -58,9 +58,10 @@ void debt(FinancialIdentity *person, double interestRate, double addPay) {
   person->debt *= debtScalar; //Multiplying debt by scalar...
 }
 
+//Function that withdraws yearly rent from account and increments "yearsRented" variable...
 void rent(FinancialIdentity *person, double rentAmount) {
   const int yearlyRent= rentAmount * 12;
-  //if they own a house
+  //If they don't own a house...
   if (!person->ownsHouse) {
     accountDifference(person, yearlyRent);
     person->yearsRented += 1;
@@ -71,7 +72,11 @@ void rent(FinancialIdentity *person, double rentAmount) {
 void house(FinancialIdentity *person, double mortgageAmount, double interestRate, int mortgageTerm) {
   int numPayments = mortgageTerm * 12;
   double monthlyInterest = interestRate / 12;
+
+  //Discount factor is a function of the number of payments and the monthly interest...
   double discountFactor = (pow((1 + monthlyInterest), numPayments) - 1) / (monthlyInterest * pow((1 + monthlyInterest), numPayments));
+
+  //Monthly payment is a function of the mortgage amount and the discount factor...
   double monthlyPayment = mortgageAmount / discountFactor;
 
   for (int i = 0; i < 12; i++) {
@@ -88,7 +93,7 @@ void house(FinancialIdentity *person, double mortgageAmount, double interestRate
   }
 }
 
-//Function to gage whether someone is ready to pay a downpayment
+//Function to gage whether someone is ready for a downpayment...
 void houseActivity(FinancialIdentity *person, double downPayment) {
   if (person->savings >= downPayment) {
     person->savings -= downPayment;
@@ -102,24 +107,32 @@ void finalHouseFunction(FinancialIdentity *person, double downPaymentRate, doubl
   double simDownPayment;
 
   const int housePrice = 210000;
+
+  //Number of years one has to pay off their mortgage...
   const int simMortgageTerm = 30;
   const int simRentAmount = 950;
 
+  //The mortgage amount is the price of the house minus the downpayment, or housePrice - (downPaymentRate * housePrice) = housePrice * (1 - downPaymentRate)
   simMortgageAmount = (1 - downPaymentRate) * housePrice;
   simDownPayment = downPaymentRate * housePrice;
 
+  //If the person doesn't own a house, determine whether they are ready to pay a downpayment...
   if (!person->ownsHouse) {
     houseActivity(person, simDownPayment);
+
+    //If they are ready to pay a downpayment, then they've acquired a house and must pay of their mortgage...
     if (person->ownsHouse) {
       person->mortgage = simMortgageAmount;
       house(person, simMortgageAmount, mortgageInterestRate, simMortgageTerm);
     }
 
+    //If they aren't, then they pay rent instead...
     else {
       rent(person, simRentAmount);
     }
   }
 
+  //If the person already owns a house, then they pay off their mortgage...
   else {
     house(person, simMortgageAmount, mortgageInterestRate, simMortgageTerm);
   }
@@ -127,11 +140,15 @@ void finalHouseFunction(FinancialIdentity *person, double downPaymentRate, doubl
 
 int *simulate(FinancialIdentity *person, double yearlySalary, bool financiallyLiterate) {
   int wealth;
+
+  //Stores wealth for 41 individial years...
   int* wealthArray = (int*)malloc(41 * sizeof(int));
 
   person->accruedDebt = 0.0;
 
   for (int i = 0; i < 41; i++) {
+
+    //Assets minus liabilities...
     wealth = (person->checking + person->savings) - (person->debt + person->mortgage);
     wealthArray[i] = wealth;
 
